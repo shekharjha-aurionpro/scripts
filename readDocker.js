@@ -1,5 +1,5 @@
-var https = require('https');
 
+var https = require('https');
 
 var processedRecord = 0;
 var processedAutomated =0;
@@ -40,7 +40,7 @@ function readDockerSearchPage(url) {
                 }
                 processedRecord++;
                 if (processedRecord % 10 == 0 ) {
-                    //console.log("Processed: " + processedRecord + " Automated: " + processedAutomated + " Docker file processed " + processedDockerFile);
+                    console.log("Processed: " + processedRecord + " Automated: " + processedAutomated + " Docker file processed " + processedDockerFile);
                 }
             }
             if (nextURL != null) {
@@ -54,5 +54,12 @@ function readDockerSearchPage(url) {
     });
 }
 
-readDockerSearchPage("https://hub.docker.com/v2/search/repositories/?page=1&query=storm");
+function searchDocker(queryString) {
+    readDockerSearchPage("https://hub.docker.com/v2/search/repositories/?page=1&query=" + queryString);
+}
 
+if (typeof process != 'undefined' && process && typeof process.argv != 'undefined' && process.argv && process.argv.length > 2) {
+    searchDocker(process.argv[2]);
+} else {
+    searchDocker('storm');
+}

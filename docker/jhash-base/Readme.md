@@ -8,8 +8,6 @@ This is the base image that gets the OEL (Oracle Enterprise Linux) 7 image ready
 5. Set work dir to /opt/app and 
 6. Set user id to app
 
-> Note: Step 6 above is defined on-build to ensure that extending images can not get root access.
-
 # Tag
 
 > latest - OEL (Oracle Enterprise Linux) 7.0, Oracle JDK (1.8.0_60)

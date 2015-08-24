@@ -1,5 +1,5 @@
 
-This is the base image that gets the OEL 7 image ready for other installations. It
+This is the base image that gets the OEL (Oracle Enterprise Linux) 7 image ready for other installations. It
 
 1. Updates and applies all the patches and installs basic tools like tar
 2. Downloads and install JDK in /opt/. It also exports JAVA_HOME=/opt/java environment variable 
@@ -12,7 +12,7 @@ This is the base image that gets the OEL 7 image ready for other installations. 
 
 # Tag
 
-> latest - OEL 7.1, JDK 8u60
+> latest - OEL (Oracle Enterprise Linux) 7.0, Oracle JDK (1.8.0_60)
 
 # Build 
 Build the image using command
@@ -24,3 +24,7 @@ Run a new docker image using command
 ```
 docker run -i -t --rm jhash-base bash
 ```
+# Additional details
+
+* Base Image Size (OEL 7.0) : 249M
+* Final Size : 782M (178M from yum update + 353M from JDK)

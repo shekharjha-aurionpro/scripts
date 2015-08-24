@@ -12,10 +12,15 @@ This is the base image that gets the OEL 7 image ready for other installations. 
 
 # Tag
 
-latest - OEL 7.1, JDK 8u60
+> latest - OEL 7.1, JDK 8u60
 
 # Build 
 Build the image using command
 ```
 docker build --rm=true --force-rm=true --pull=true -t jhash-base:latest .
+```
+# Run
+Run a new docker image using command
+```
+docker run -i -t --rm jhash-base bash
 ```

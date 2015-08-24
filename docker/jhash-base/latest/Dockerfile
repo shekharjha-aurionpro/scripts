@@ -36,6 +36,6 @@ RUN groupadd $APP_NAME; \
     chown -R $APP_NAME:$APP_NAME /opt/$APP_NAME; \
     mkdir /var/log/$APP_NAME; \
     chown -R $APP_NAME:$APP_NAME /var/log/$APP_NAME
-VOLUME ['/var/log/$APP_NAME', '/opt/$APP_NAME']
+VOLUME ["/var/log/$APP_NAME", "/opt/$APP_NAME"]
 WORKDIR /opt/$APP_NAME
 USER $APP_NAME

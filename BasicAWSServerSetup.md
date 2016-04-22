@@ -19,9 +19,8 @@ sed 's/enforcing/disabled/g' -i /etc/selinux/config
 `echo "/opt/swap/swapfile          swap            swap    defaults        0 0" >>/etc/fstab`
 5. Create a new user<br/>
 `useradd -c "Product specific user" -d /home/demo -g users -m -N demo`
-5. Change hostname <br/>
-`hostnamectl status`<br/>
-`hostnamectl set-hostname <new name>.demo.ap`<br/>
+5. Change hostname (Also need to disable aws set_hostname module)<br/>
+`echo <new name>.demo.ap > /etc/hostname`<br/>
 6. Add new disk as physical disk
 `fdisk /dev/xvdb`<br/>
 Command (m for help): `n`<br/>

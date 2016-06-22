@@ -2,13 +2,15 @@ This process consists of transforming existing Cent OS 6 (on AWS) instance to OE
 
 # Transformation from CentOS to OEL
 
-1. Login to CentOS Linux 6 x86_64 HVM EBS `ssh -i "...key" centos@<ip address>`
-2. Run transformation script
-`sudo su -`<br>
-`curl -O https://linsux.oracle.com/switch/centos2ol.sh`<br>
-`sh centos2ol.sh`<br>
-`yum update`<br>
-`reboot`<br>
+Login to CentOS Linux 6 x86_64 HVM EBS `ssh -i "...key" centos@<ip address>`
+Run transformation script
+```
+sudo su -
+curl -O https://linsux.oracle.com/switch/centos2ol.sh
+sh centos2ol.sh
+yum update
+reboot
+```
 
 # Basic configuration
 
@@ -127,7 +129,7 @@ The base package for oracle-rdbms-server-11gR2-preinstall install added the 250 
 # * soft  nproc   2047
 * hard  nproc   16384
 
-### Added public keys for all the users who need access.
+Added public keys for all the users who need access.
 
 # Instance specific
 
@@ -138,11 +140,13 @@ After launching the instance, the following operations were performed.
 sudo yum update
 ```
 ### Change hostname (see above).
-Update the /etc/cloud/cloud.cfg file on your RHEL 7 or Centos 7 Linux instance.
-     sudo vim /etc/cloud/cloud.cfg
-Append the following string at the bottom of the file to ensure that the hostname is preserved between restarts/reboots.
-     preserve_hostname: true
-Save and exit the vim editor.
+
+1. Update the following line in /etc/sysconfig/network
+`HOSTNAME=oel67.dev.acmes`
+2. Update the /etc/hosts file on your RHEL 7 or Centos 7 Linux instance with the new hostname.
+`127.0.0.1 <new host name>`
+3. Update the /etc/cloud/cloud.cfg file on your RHEL 7 or Centos 7 Linux instance.
+`preserve_hostname: true`
 
 ### Mount the new disk
 ```
@@ -163,11 +167,9 @@ Command (m for help): w
 > mount -t ext4 /dev/xvdb1 /opt/oracle/
 > chown oracle:oinstall /opt/oracle/
 ```
-3. Add the new disk in mount file /etc/fstab
+Add the new disk in mount file /etc/fstab
 ```
 /dev/xvdb1              /opt/oracle             ext4    defaults        0 2
 ```
-4. reboot.
-5. copy the .ssh/authorized_keys to ~oracle/.ssh and make oracle:oinstall owner to allow people to login using oracle id
-6. Added the relevant lines in /etc/hosts
+reboot.
 

@@ -148,6 +148,11 @@ sudo yum update
 3. Update the /etc/cloud/cloud.cfg file on your RHEL 7 or Centos 7 Linux instance.
 `preserve_hostname: true`
 
+### Add a new user
+```
+> useradd -c "Admin" -g users -m -N admin
+```
+
 ### Mount the new disk
 ```
 > fdisk /dev/xvdb
@@ -165,11 +170,15 @@ Command (m for help): w
 > mkfs.ext4 -L Oracle /dev/xvdb1
 > mkdir /opt/oracle
 > mount -t ext4 /dev/xvdb1 /opt/oracle/
-> chown oracle:oinstall /opt/oracle/
+> chown admin:users /opt/oracle/
 ```
 Add the new disk in mount file /etc/fstab
 ```
 /dev/xvdb1              /opt/oracle             ext4    defaults        0 2
+```
+If needed, add to sudoer file. (In aws, the sudoers are typically handled by adding new files to /etc/sudoers.d/
+```
+echo "admin ALL=(ALL) NOPASSWD:ALL" > 100-admin-users
 ```
 reboot.
 

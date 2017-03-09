@@ -33,4 +33,40 @@ openssl genrsa -out ./$processHostName.key 2048
 openssl req -new -key ./$processHostName.key -out ./$processHostName.csr -subj "/C=IN/ST=MH/L=WHATEVER/O=ACMEINC/CN=$1"
 ```
 
+# Create JKS
+```
+if [ $# -eq 0 ]
+then
+   echo "Please provide fully qualified server name"
+   exit
+fi
+echo "Processing $1 "
+splitValues=(${1//./ })
+if [ ${#splitValues[@]} -lt 1 ]
+then
+   echo "Please ensure that server name is provided"
+   exit
+fi
+processHostName=${splitValues[0]}
+
+if [ ! -d "$processHostName" ];
+then
+  echo "Looks like no SSL initialization has not yet been performed. Please generate CSR and get signed certificate before running this script"
+  exit
+fi
+if [ ! -f "$processHostName/$processHostName.key" ]
+then
+  echo "Failed to locate private key. Please ensure that SSL initialization was performed correctly."
+  exit
+fi
+if [ ! -f "$processHostName/$processHostName.cert" ]
+then
+  echo "Looks like CSR was created but signed certificate is not available. Please ensure that signed certificate is stored in $processHostName.cert file"
+  exit
+fi
+cd $processHostName
+openssl pkcs12 -export -in $processHostName.cert -inkey $processHostName.key -out $processHostName.p12
+keytool -importkeystore -srckeystore $processHostName.p12 -srcstoretype PKCS12 -destkeystore $processHostName.jks -deststoretype JKS
+```
+
 

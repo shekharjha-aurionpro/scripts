@@ -35,6 +35,7 @@ openssl req -new -key ./$processHostName.key -out ./$processHostName.csr -subj "
 
 # Create JKS
 ```
+JAVA_HOME="${JAVA_HOME:-/opt/oracle/java/jdk1.7.0_80}"
 if [ $# -eq 0 ]
 then
    echo "Please provide fully qualified server name"
@@ -65,8 +66,20 @@ then
   exit
 fi
 cd $processHostName
-openssl pkcs12 -export -in $processHostName.cert -inkey $processHostName.key -out $processHostName.p12
-keytool -importkeystore -srckeystore $processHostName.p12 -srcstoretype PKCS12 -destkeystore $processHostName.jks -deststoretype JKS
+read -s -p "Keystore password?" keystorePassword
+echo
+read -s -p "Private key password?" privateKeyPassword
+echo
+rm -f $processHostName.p12
+openssl pkcs12 -export -in $processHostName.cert -inkey $processHostName.key -out $processHostName.p12 -password pass:$privateKeyPassword -name $processHostName
+rm -f $processHostName.jks
+$JAVA_HOME/bin/keytool -importkeystore -srckeystore $processHostName.p12 -srcstoretype PKCS12 -destkeystore $processHostName.jks -deststoretype JKS -srcstorepass $privateKeyPassword -destkeypass $privateKeyPassword -deststorepass $keystorePassword -alias $processHostName
+rm -f $processHostName.p12
+cd ..
+for cert in `ls *.crt`;
+do
+  $JAVA_HOME/bin/keytool -import -file $cert -alias $cert -trustcacerts -keystore $processHostName/$processHostName.jks -storepass $keystorePassword -noprompt
+done
 ```
 
 

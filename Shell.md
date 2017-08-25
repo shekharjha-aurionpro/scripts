@@ -25,6 +25,7 @@ defaultFunc() {
 # $2 : Default value to set if user presses enter key.
 # $3 : extensions to read function (e.g. -n 1 for key press, -s for not prompting input.
 # $4 : Validation function to use.
+# $5 - : Passed as input to validation function.
 readVariable() {
   checkFunc=${4-defaultFunc}
   checkFuncResult=1
@@ -44,7 +45,7 @@ readVariable() {
       read -p "$1 ($2)? " $3
       if [ -z "${REPLY}" ]; then result=$2; else result=${REPLY}; fi
     fi
-    $checkFunc "$result"
+    $checkFunc "$result" ${@:5}
     checkFuncResult=$?
   done
   echo $result
@@ -81,8 +82,13 @@ splitAndCheck() {
   return 1;
 }
 
+# A function that combines and validates multiple values.
+validateAndConnect() { isNumber $1; if [[ $? -eq 1 ]] ; then return 1; fi;  validateHostName $2; if [[ $? -eq 1 ]]; then return 1; fi; isAlive $2 $1; if [[ $? -eq 1 ]]; then return 1; fi; }
+
 defaultHostName=`nslookup ${serverHostName} |grep Name |cut -f 2`
 fully_qualified_server_name=$( readVariable "Server Name" "${defaultHostName}" "" validateHostName )
 echo ${fully_qualified_server_name}
+oim_admin_host=$( readVariable "OIM Admin server's fully qualified hostname" "" "" validateHostName )
+oim_admin_port=$( readVariable "OIM Admin server port" "7001" "" validateAndConnect ${oim_admin_host} )
 
 ```

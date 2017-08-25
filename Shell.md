@@ -74,10 +74,10 @@ isAlive(){ timeout 2 bash -c "</dev/tcp/$1/$2" 2>/dev/null; if [[ $? -eq 0 ]] ; 
 # Function to parse Cluster detail and validate connectivity to individual servers
 # identified.
 splitAndCheck() {
-  IFS=','; local splitValues=(${1})
+  IFS=','; splitValues=(${1})
   for item in "${splitValues[@]}";
   do
-    IFS=':'; local splitHostPort=(${item}); if [[ ${#splitHostPort[@]} -lt 2 ]] ; then return 1; else isAlive ${splitHostPort[0]} ${splitHostPort[1]}; local isAliveResult=$?  return ${isAliveResult}; fi
+    IFS=':'; splitHostPort=(${item}); if [[ ${#splitHostPort[@]} -lt 2 ]] ; then return 1; else isAlive ${splitHostPort[0]} ${splitHostPort[1]}; isAliveResult=$?  return ${isAliveResult}; fi
   done;
   return 1;
 }

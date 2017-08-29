@@ -181,5 +181,60 @@ Add a trusted certificate to wallet to allow proxy plugin to connect to weblogic
 ```
 
 
+# Weblogic
+In order to secure SSL on weblogic, the following changes are needed. These changes ensure that
 
+1. Strong TLS Protocol (i.e. version 1.2) is supported and request to connect using weak protocol is not supported.
+2. Strong Ciphers are used.
 
+## Disable weak cipher
+
+### Weblogic Server and Node Manager
+Use the latest Java. This implies using JDK version older than 1.7.0_80 which is available through oracle support. Understand licensing implication of using latest version.
+
+Also, change the following line in /opt/oracle/java/java7/jre/lib/security/java.security
+```
+jdk.tls.disabledAlgorithms=SSLv3, MD5withRSA, DH keySize < 768, \
+    EC keySize < 224 
+```
+to the following to disable weak RC4, DES and 3DES protocols
+```
+jdk.tls.disabledAlgorithms=SSLv3, MD5withRSA, DH keySize < 768, \
+    EC keySize < 224 \
+        RC4_128, RC4_40, DES_CBC, DES40_CBC, \
+        3DES_EDE_CBC
+```
+### Default JKS Keystore
+The Default JKS Keystore contains a certificate which contains a key/certificate with weak signature algorithm. This is used by SOA server to authenticate and invoke OIM Webservices.
+#### JKS
+Create new keystore with self-signed certificate
+```
+keytool -genkeypair -keystore ./default-keystore.jks -keyalg RSA -sigalg SHA256withRSA -alias xell -dname "CN=<env>-gidm,O=ACME, L=City, S=State, C=Country" -keysize 2048 -validity 3650
+Enter keystore password:
+Re-enter new password:
+Enter key password for <xell>
+```
+Export and import new certificate
+```
+keytool -exportcert -keystore ./default-keystore.jks -v -alias xell -rfc -file ./gidm.cer
+keytool -importcert -keystore ./default-keystore.jks -alias xeltrusted -file ./gidm.cer -noprompt
+```
+Replace old key present in `$DOMAIN_HOME/config/fmwconfig/default-keystore.jks`
+
+#### Keystore password update
+Update the new Password in `oim` Credential map available on Oracle EM console (or through wlst command).
+
+## Enable strong SSL Protocol
+
+### Weblogic Server
+
+Add the following line ${DOMAIN_HOME}/bin/setDomainEnv.sh. 
+```
+export JAVA_OPTIONS="${JAVA_OPTIONS} -Dweblogic.security.SSL.minimumProtocolVersion=TLSv1.2"
+```
+
+### Node Manager
+Add the following in JAVA_OPTIONS definition in ${MIDDLEWARE_HOME}/wlserver_10.3/server/bin/startNodeManager.sh
+```
+-Dweblogic.security.SSL.minimumProtocolVersion=TLSv1.2
+```

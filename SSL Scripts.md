@@ -1,6 +1,9 @@
 Simple scripts for various SSL operations using OpenSSL and Java keystores
 
-# CSR Generation
+# OpenSSL
+
+## CSR Generation
+
 ```
 if [ $# -eq 0 ]
 then
@@ -33,7 +36,8 @@ openssl genrsa -out ./$processHostName.key 2048
 openssl req -new -key ./$processHostName.key -out ./$processHostName.csr -subj "/C=IN/ST=MH/L=WHATEVER/O=ACMEINC/CN=$1"
 ```
 
-# Create JKS
+## Create PKCS12 file and JKS File
+
 ```
 JAVA_HOME="${JAVA_HOME:-/opt/oracle/java/jdk1.7.0_80}"
 if [ $# -eq 0 ]
@@ -74,12 +78,91 @@ rm -f $processHostName.p12
 openssl pkcs12 -export -in $processHostName.cert -inkey $processHostName.key -out $processHostName.p12 -password pass:$privateKeyPassword -name $processHostName
 rm -f $processHostName.jks
 $JAVA_HOME/bin/keytool -importkeystore -srckeystore $processHostName.p12 -srcstoretype PKCS12 -destkeystore $processHostName.jks -deststoretype JKS -srcstorepass $privateKeyPassword -destkeypass $privateKeyPassword -deststorepass $keystorePassword -alias $processHostName
-rm -f $processHostName.p12
 cd ..
 for cert in `ls *.crt`;
 do
   $JAVA_HOME/bin/keytool -import -file $cert -alias $cert -trustcacerts -keystore $processHostName/$processHostName.jks -storepass $keystorePassword -noprompt
 done
+
+```
+
+# JKS
+
+## Create JKS from PKCS12
+```
+$JAVA_HOME/bin/keytool -importkeystore -srckeystore $processHostName.p12 -srcstoretype PKCS12 -destkeystore $processHostName.jks -deststoretype JKS -srcstorepass $privateKeyPassword -destkeypass $privateKeyPassword -deststorepass $keystorePassword -alias $processHostName
+```
+
+# NSS
+Mozilla NSS uses internal certificate database. On Suse Linux 11, mod-apache_nss is recommended method to support TLSv1.2 on apache 2.2. The following steps can be used to create certificate database.
+
+## Create database
+```
+certutil -N -d conf/certs.nss/ --empty-password
+```
+
+## Add certificates
+```
+certutil -A -n "intermediate" -t "C,," -d conf/certs.nss/ -i conf/certs/intermediate.cer
+```
+## Add PKCS12
+```
+pk12util -i "${p12FileName}" -d conf/certs.nss/ -W "${p12FilePassword}"
+```
+
+## Setup Apache with NSS
+Add the following lines in httpd.conf to enable SSL using NSS module
+```
+LoadModule nss_module               /usr/lib64/apache2/mod_nss.so
+<IfModule nss_module>
+#
+# NSSEngine: Whether SSL is enabled.
+#
+  NSSEngine on
+
+#
+# ServerName: Hostname and port that the server uses to identify itself
+#
+  ServerName @@fully-qualified-server-name@@:@@port@@
+
+#
+# NSSCertificateDatabase: Location of NSS Database that contains server
+# and other intermediate and CA certificates.
+#
+# Use 'certutil' to create and manage this database.
+# Use 'pk12util' to import new server's certificate
+#
+  NSSCertificateDatabase @@site-location@@/@@site-name@@/conf/certs.nss
+
+#
+# NSSNickName: Alias used to identify server certificate
+#
+# Use 'certutil -L -d <location of certificate database>' to identify
+# the server certificate
+#
+  NSSNickName @@server_cert_name@@
+
+  NSSRandomSeed startup builtin
+#
+# NSSProtocol: Specific SSL Protocol that server should support.
+#
+# Based on security recommendation, this has been set to latest
+# TLS protocol.
+#
+  NSSProtocol TLSv1.2
+
+#
+# NSSCipherSuite: Cipher suite that can be used by client to connect
+# to Server.
+#
+# Based on security recommendation, this has been set to NOT support
+# DES, 3DES, RC4
+#
+  NSSCipherSuite ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:RSA+AESGCM:RSA+AES:!aNULL:!MD5:!DSS
+  NSSPassPhraseHelper /usr/sbin/nss_pcache
+
+</IfModule>
+
 ```
 
 

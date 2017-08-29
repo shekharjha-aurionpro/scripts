@@ -165,4 +165,21 @@ LoadModule nss_module               /usr/lib64/apache2/mod_nss.so
 
 ```
 
+# Oracle Wallet
+
+Oracle wallet management tools are available as part of Weblogic Proxy plugin and need Java to run.
+
+## Create wallet
+```
+/opt/apache/plugin/18603703/bin/orapki wallet create -wallet ../../../oracle-wallet/wallet-base/ -auto_login_only
+```
+
+## Add certificate 
+Add a trusted certificate to wallet to allow proxy plugin to connect to weblogic servers
+```
+/opt/apache/plugin/18603703/bin/orapki wallet add -wallet ../../../oracle-wallet/wallet-base -cert ../../../oracle-wallet/root.crt -trusted_cert -auto_login_only
+```
+
+
+
 
